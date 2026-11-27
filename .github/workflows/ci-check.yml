@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: '1.26.x'
       - name: Run Go bridge tests
         working-directory: agy_ide_bridge
         run: go test ./...
@@ -38,7 +38,7 @@ jobs:
           java-version: '21'
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: '1.26.x'
       - uses: gradle/actions/setup-gradle@v4
       - name: Compile Debug Kotlin & Run Unit Tests
         run: ./gradlew :app:compileDebugKotlin :app:testDebugUnitTest -Pabi=arm64
