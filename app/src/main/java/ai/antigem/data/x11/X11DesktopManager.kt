@@ -58,7 +58,7 @@ object X11DesktopManager {
     const val COMPANION_ANTIGEM = "antigem-termux-x11"
     const val COMPANION_OFFICIAL = "termux-x11-nightly"
 
-    private const val FORK_REPO = "Santoshkurmi/termux-x11"
+    private const val FORK_REPO = "mdshahinbabu299/termux-x11"
     const val FORK_RELEASES_PAGE = "https://github.com/$FORK_REPO/releases/latest"
     private const val FORK_APK_URL = "https://github.com/$FORK_REPO/releases/latest/download/antigem-termux-x11-sharedUid.apk"
     private const val FORK_RELEASE_API = "https://api.github.com/repos/$FORK_REPO/releases/latest"

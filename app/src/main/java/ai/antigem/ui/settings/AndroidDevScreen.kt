@@ -468,7 +468,7 @@ private fun SkillCard(state: AndroidDevManager.State, busy: Boolean, cardBg: Col
 private fun TerminalCard(state: AndroidDevManager.State, cardBg: Color, cardBorder: BorderStroke) {
     var open by remember { mutableStateOf(false) }
     val repo = runCatching { ai.antigem.ui.browser.PluginRepositories.parse(state.source) }.getOrNull()
-    val raw = "https://raw.githubusercontent.com/${repo?.slug ?: "Santoshkurmi/antigem_plugins"}/${repo?.ref?.ifBlank { "main" } ?: "main"}/android-dev/skills/android-dev/scripts"
+    val raw = "https://raw.githubusercontent.com/${repo?.slug ?: "mdshahinbabu299/antigem_plugins"}/${repo?.ref?.ifBlank { "main" } ?: "main"}/android-dev/skills/android-dev/scripts"
     val s = "\$PREFIX/share/antigem-android/android-setup.sh"
     // In the Ubuntu chroot the script runs inside it, as root (AntiGem copies the files to /opt/antigem/share/antigem-android)
     val c = "sudo env ANTIGEM_RUNTIME=chroot bash /opt/antigem/share/antigem-android/android-setup.sh"

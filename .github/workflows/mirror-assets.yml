@@ -1,0 +1,47 @@
+name: Mirror Upstream Release Assets
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  mirror-assets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mirror rootfs-v2 release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p /tmp/rootfs-v2
+          curl -fL -o /tmp/rootfs-v2/bootrapz_2026-11-19.zip \
+            "https://github.com/Santoshkurmi/antigem/releases/download/rootfs-v2/bootrapz_2026-11-19.zip"
+          curl -fL -o /tmp/rootfs-v2/bootrapz_x86_64_2026-11-20.zip \
+            "https://github.com/Santoshkurmi/antigem/releases/download/rootfs-v2/bootrapz_x86_64_2026-11-20.zip"
+          if gh release view rootfs-v2 -R "${{ github.repository }}" >/dev/null 2>&1; then
+            gh release upload rootfs-v2 /tmp/rootfs-v2/* --clobber -R "${{ github.repository }}"
+          else
+            gh release create rootfs-v2 /tmp/rootfs-v2/* \
+              -R "${{ github.repository }}" \
+              --title "Rootfs v2 (Mirrored)" \
+              --notes "Mirrored rootfs-v2 archives for self-hosted AntiGem setup."
+          fi
+          rm -rf /tmp/rootfs-v2
+
+      - name: Mirror render-v1 release asset
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p /tmp/render-v1
+          curl -fL -o /tmp/render-v1/antigem-render-bundle-v1.zip \
+            "https://github.com/Santoshkurmi/antigem/releases/download/render-v1/antigem-render-bundle-v1.zip"
+          if gh release view render-v1 -R "${{ github.repository }}" >/dev/null 2>&1; then
+            gh release upload render-v1 /tmp/render-v1/* --clobber -R "${{ github.repository }}"
+          else
+            gh release create render-v1 /tmp/render-v1/* \
+              -R "${{ github.repository }}" \
+              --title "STEM render bundle v1 (Mirrored)" \
+              --notes "Mirrored STEM render bundle for self-hosted AntiGem."
+          fi
+          rm -rf /tmp/render-v1

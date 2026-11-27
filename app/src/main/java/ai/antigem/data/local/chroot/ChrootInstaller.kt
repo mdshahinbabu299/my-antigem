@@ -89,7 +89,7 @@ data class ChrootInstallState(
 /** Installs an Ubuntu chroot (the full-page setup in Settings and at first launch). */
 object ChrootInstaller {
     private const val TAG = "ChrootInstaller"
-    const val PREBUILT_REPO = "Santoshkurmi/antigem"
+    const val PREBUILT_REPO = "mdshahinbabu299/my-antigem"
     const val PREBUILT_TAG = "chroot-ubuntu-v1"
     const val PREBUILT_PAGE = "https://github.com/$PREBUILT_REPO/releases/tag/$PREBUILT_TAG"
     private const val MIN_FREE_BYTES = 1L shl 30

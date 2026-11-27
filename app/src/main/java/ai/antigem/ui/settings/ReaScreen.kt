@@ -557,7 +557,7 @@ private fun SwitchRow(title: String, text: String, checked: Boolean, enabled: Bo
 private fun ManualSetupCard(state: ReaManager.State, cardBg: Color, cardBorder: BorderStroke) {
     var open by remember { mutableStateOf(false) }
     val repo = runCatching { ai.antigem.ui.browser.PluginRepositories.parse(state.source) }.getOrNull()
-    val raw = "https://raw.githubusercontent.com/${repo?.slug ?: "Santoshkurmi/antigem_plugins"}/${repo?.ref?.ifBlank { "main" } ?: "main"}/rea/skills/rea/scripts"
+    val raw = "https://raw.githubusercontent.com/${repo?.slug ?: "mdshahinbabu299/antigem_plugins"}/${repo?.ref?.ifBlank { "main" } ?: "main"}/rea/skills/rea/scripts"
     // In the Ubuntu chroot the scripts run inside it, as root (AntiGem copies the files to /opt/antigem/share/antigem-rea)
     val chrootSetup = "sudo env ANTIGEM_RUNTIME=chroot bash /opt/antigem/share/antigem-rea/rea-setup.sh"
     val steps = if (state.chroot) listOf(
