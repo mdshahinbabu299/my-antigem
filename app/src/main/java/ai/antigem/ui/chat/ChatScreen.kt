@@ -198,8 +198,12 @@ fun ChatScreen(
     val isClaudeChat = currentConv?.agent == ai.antigem.domain.model.AgentKind.CLAUDE
     val isOpenCodeChat = currentConv?.agent == ai.antigem.domain.model.AgentKind.OPENCODE
     val isCodexChat = currentConv?.agent == ai.antigem.domain.model.AgentKind.CODEX
+    val isVibeChat = currentConv?.agent == ai.antigem.domain.model.AgentKind.VIBE
     /** The chat on screen is Antigravity's (its hub, bridge banners and sign-in apply). */
-    val isAgyChat = !isClaudeChat && !isOpenCodeChat && !isCodexChat
+    val isAgyChat = !isClaudeChat && !isOpenCodeChat && !isCodexChat && !isVibeChat
+    val vibeBackend = viewModel.vibeBackend
+    val vibeState by vibeBackend.state.collectAsState()
+    val vibePending by vibeBackend.pending.collectAsState()
     val openCodeBackend = viewModel.openCodeBackend
     val openCodePending by openCodeBackend.pendingPermissions.collectAsState()
     val openCodeState by openCodeBackend.state.collectAsState()
@@ -2897,6 +2901,17 @@ fun ChatScreen(
                 if (isCodexChat) {
                     ai.antigem.ui.codex.CodexControlsStrip(codexBackend)
                 }
+                if (isVibeChat) {
+                    ai.antigem.ui.vibe.VibeControlsStrip(vibeBackend)
+                    vibePending.forEach { item ->
+                        ai.antigem.ui.vibe.VibeApprovalCard(
+                            pending = item,
+                            onApprove = { vibeBackend.approvePending(item, always = false) },
+                            onAlwaysAllow = { vibeBackend.approvePending(item, always = true) },
+                            onReject = { vibeBackend.rejectPending(item) }
+                        )
+                    }
+                }
 
                 // Jarvis chat: its command strip (mission, teams' tasks, voice replies, autopilot)
                 if (jarvisEnabled && currentConv != null && (isJarvisTextChat || jarvisConversations.any { it.id == currentConv?.id })) {
@@ -2933,10 +2948,15 @@ fun ChatScreen(
 
                 // Chat Input Bar with Bottom Model & Thinking Selector Pills (Claude Android Style)
                 if (!isReadOnlyChat) ChatInputBar(
-                    isOnline = if (isCodexChat) codexState != ai.antigem.data.agent.codex.CodexState.OFFLINE && codexState != ai.antigem.data.agent.codex.CodexState.NOT_INSTALLED && codexState != ai.antigem.data.agent.codex.CodexState.DISABLED && codexState != ai.antigem.data.agent.codex.CodexState.OUTDATED
+                    isOnline = if (isVibeChat) !vibeState.isBlocking
+                        else if (isCodexChat) codexState != ai.antigem.data.agent.codex.CodexState.OFFLINE && codexState != ai.antigem.data.agent.codex.CodexState.NOT_INSTALLED && codexState != ai.antigem.data.agent.codex.CodexState.DISABLED && codexState != ai.antigem.data.agent.codex.CodexState.OUTDATED
                         else if (isOpenCodeChat) !openCodeState.isBlocking else if (isClaudeChat) !claudeState.isBlocking else systemConnectionState.canSend,
-                    isAuth = if (isCodexChat) codexState != ai.antigem.data.agent.codex.CodexState.SIGNED_OUT else if (isOpenCodeChat) true else if (isClaudeChat) claudeChatState != ai.antigem.data.agent.claude.ClaudeStatus.SIGNED_OUT && claudeChatState != ai.antigem.data.agent.claude.ClaudeStatus.SIGNING_IN else systemConnectionState.isAuth,
-                    offlineMessage = if (isCodexChat) when (codexState) {
+                    isAuth = if (isVibeChat) true else if (isCodexChat) codexState != ai.antigem.data.agent.codex.CodexState.SIGNED_OUT else if (isOpenCodeChat) true else if (isClaudeChat) claudeChatState != ai.antigem.data.agent.claude.ClaudeStatus.SIGNED_OUT && claudeChatState != ai.antigem.data.agent.claude.ClaudeStatus.SIGNING_IN else systemConnectionState.isAuth,
+                    offlineMessage = if (isVibeChat) when (vibeState) {
+                        ai.antigem.data.agent.vibe.VibeState.NOT_INSTALLED -> "Mistral Vibe is not installed. See Settings → Mistral Vibe."
+                        ai.antigem.data.agent.vibe.VibeState.DISABLED, ai.antigem.data.agent.vibe.VibeState.OUTDATED -> "Restart the server to use Mistral Vibe."
+                        else -> "The server is offline. Start it to send messages."
+                    } else if (isCodexChat) when (codexState) {
                         ai.antigem.data.agent.codex.CodexState.NOT_INSTALLED -> "Codex is not installed on the server. See Settings → Codex."
                         ai.antigem.data.agent.codex.CodexState.DISABLED, ai.antigem.data.agent.codex.CodexState.OUTDATED -> "Restart the server to use Codex."
                         else -> "The server is offline. Start it to send messages."
@@ -3281,6 +3301,7 @@ fun ChatScreen(
             initialOpenCodePage = openCodeSettingsPage,
             codex = viewModel.codexBackend,
             initialCodexPage = codexSettingsPage,
+            vibe = viewModel.vibeBackend,
             initialSection = requestedSettingsSection
                 ?: if (openOpenCodeSettings) ai.antigem.ui.settings.SettingsSection.OPENCODE
                 else if (openCodexSettings) ai.antigem.ui.settings.SettingsSection.CODEX else null,

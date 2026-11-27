@@ -116,7 +116,8 @@ enum class SettingsSection(val title: String, val subtitle: String) {
     CODEX("Codex", "Account & CLI, usage limits, permissions, MCP"),
     /** One Codex page (which one: the dialog's codexPage). */
     CODEX_PAGE("Codex", "Account & CLI, usage limits, permissions, MCP"),
-    AGENTS("Agents", "Run Antigravity, Claude Code, OpenCode, Codex or several"),
+    VIBE("Mistral Vibe", "CLI install, Mistral Pro / API key, permissions"),
+    AGENTS("Agents", "Run Antigravity, Claude Code, OpenCode, Codex, Mistral Vibe or several"),
     GLOBAL_CONTEXT("Global context", "What every chat is told about this app, and your own instructions"),
     AGENT_MEMORY("Agent memory & history", "Memories every agent keeps across chats, and past chats they can look up"),
     AGENT_HISTORY("Saved chats", "The chat history the agents can look up: read, edit or remove it"),
@@ -327,6 +328,7 @@ fun SettingsDialog(
     codex: ai.antigem.data.agent.codex.CodexChatBackend? = null,
     /** Opens on this Codex page (e.g. Account & CLI from an Install button). */
     initialCodexPage: ai.antigem.ui.codex.CodexSettingsPage? = null,
+    vibe: ai.antigem.data.agent.vibe.VibeChatBackend? = null,
     /** Antigravity's status and Google account, for its Account & CLI page (null: Antigravity is off). */
     agyStatus: ai.antigem.ui.agents.AgentStatusEntry? = null,
     agyAuth: ai.antigem.data.remote.AgyHubClient.AgyAuthInfo = ai.antigem.data.remote.AgyHubClient.AgyAuthInfo(),
@@ -507,6 +509,7 @@ fun SettingsDialog(
                         claude = claude,
                         openCode = openCode,
                         codex = codex,
+                        vibe = vibe,
                         onNavigate = { currentSection = it }
                     )
 
@@ -770,6 +773,9 @@ fun SettingsDialog(
                             onOpenReaGroups = { currentSection = SettingsSection.REA_GROUPS }
                         )
                     }
+                    SettingsSection.VIBE -> if (vibe != null) {
+                        ai.antigem.ui.vibe.VibeSettingsScreen(vibe)
+                    }
                     SettingsSection.OPENCODE_PAGE -> if (openCode != null) {
                         ai.antigem.ui.opencode.OpenCodeSettingsScreen(
                             openCode, openCodePage,
@@ -874,6 +880,7 @@ private fun MainSettingsMenu(
     claude: ai.antigem.ui.claude.ClaudeSettingsDeps? = null,
     openCode: ai.antigem.data.agent.opencode.OpenCodeChatBackend? = null,
     codex: ai.antigem.data.agent.codex.CodexChatBackend? = null,
+    vibe: ai.antigem.data.agent.vibe.VibeChatBackend? = null,
     enabledAgents: Set<ai.antigem.domain.model.AgentKind> = setOf(ai.antigem.domain.model.AgentKind.AGY),
     onNavigate: (SettingsSection) -> Unit
 ) {
@@ -883,6 +890,8 @@ private fun MainSettingsMenu(
     val openCodeState = openCode?.state?.collectAsState()?.value
     val codexOn = ai.antigem.domain.model.AgentKind.CODEX in enabledAgents
     val codexState = codex?.state?.collectAsState()?.value
+    val vibeOn = ai.antigem.domain.model.AgentKind.VIBE in enabledAgents
+    val vibeState = vibe?.state?.collectAsState()?.value
     val c = ai.antigem.theme.AppColors
     fun row(section: SettingsSection, icon: ImageVector, tint: Color, value: String? = null, valueColor: Color? = null) =
         SettingsRowItem(icon, tint, section.title, value, valueColor) { onNavigate(section) }
@@ -971,6 +980,7 @@ private fun MainSettingsMenu(
                                 ai.antigem.domain.model.AgentKind.CLAUDE -> "Claude"
                                 ai.antigem.domain.model.AgentKind.OPENCODE -> "OpenCode"
                                 ai.antigem.domain.model.AgentKind.CODEX -> "Codex"
+                                ai.antigem.domain.model.AgentKind.VIBE -> "Vibe"
                             }
                         }
                     claudeOn -> "Claude Code"
@@ -985,6 +995,8 @@ private fun MainSettingsMenu(
                     if (openCodeState == ai.antigem.data.agent.opencode.OpenCodeState.READY) QuotaGreen else c.warning) else null,
                 if (codex != null && codexOn) row(SettingsSection.CODEX, Icons.Outlined.Terminal, ai.antigem.ui.components.CodexAccent, codexState?.label,
                     if (codexState == ai.antigem.data.agent.codex.CodexState.READY) QuotaGreen else c.warning) else null,
+                if (vibe != null && vibeOn) row(SettingsSection.VIBE, Icons.Outlined.AutoAwesome, ai.antigem.ui.components.VibeAccent, vibeState?.label,
+                    if (vibeState == ai.antigem.data.agent.vibe.VibeState.READY) QuotaGreen else c.warning) else null,
                 row(SettingsSection.JARVIS, Icons.Outlined.RecordVoiceOver, c.accentTeal, if (jarvisOn) "On" else "Off",
                     if (jarvisOn) QuotaGreen else null)
             ),

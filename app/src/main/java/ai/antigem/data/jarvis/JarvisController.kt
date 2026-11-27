@@ -1872,6 +1872,7 @@ object JarvisController {
                 AgentKind.CLAUDE -> vm.claudeBackend.loadMessages(id)
                 AgentKind.OPENCODE -> vm.openCodeBackend.loadMessages(id)
                 AgentKind.CODEX -> vm.codexBackend.loadMessages(id)
+                AgentKind.VIBE -> vm.vibeBackend.loadMessages(id)
                 AgentKind.AGY -> {
                     val steps = hub.getCascadeTrajectorySteps(id).getOrNull().orEmpty()
                     ai.antigem.domain.chat.TrajectoryEngine().ingestStepsDirect(steps, id)

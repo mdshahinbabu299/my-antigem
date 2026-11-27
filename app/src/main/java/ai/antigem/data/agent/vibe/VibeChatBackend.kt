@@ -27,8 +27,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import java.io.File
@@ -336,7 +336,7 @@ class VibeChatBackend(
                 if (sessionId == null) {
                     val newRes = client.rpc("session/new", buildJsonObject {
                         put("cwd", ".")
-                        put("mcpServers", buildJsonArray {})
+                        put("mcpServers", JsonArray(emptyList()))
                     })
                     val newObj = newRes.getOrThrow().o ?: error("Invalid session/new response")
                     sessionId = newObj.str("sessionId") ?: error("Missing sessionId")
@@ -345,12 +345,10 @@ class VibeChatBackend(
                 }
                 val promptRes = client.rpc("session/prompt", buildJsonObject {
                     put("sessionId", sessionId)
-                    put("prompt", buildJsonArray {
-                        add(buildJsonObject {
-                            put("type", "text")
-                            put("text", text)
-                        })
-                    })
+                    put("prompt", JsonArray(listOf(buildJsonObject {
+                        put("type", "text")
+                        put("text", text)
+                    })))
                 }, timeoutMs = 600_000L)
                 promptRes.getOrThrow()
                 finishTurn(cur.id, null)

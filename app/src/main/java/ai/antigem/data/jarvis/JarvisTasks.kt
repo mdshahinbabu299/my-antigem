@@ -253,6 +253,7 @@ object JarvisTasks {
                 scope.launch { delay(2500); runCatching { vm.agyBackend.syncAgyConversations(force = true) } }
                 id
             }
+            AgentKind.VIBE -> error("Mistral Vibe is not supported for Jarvis background tasks yet.")
         }
         val task = Task(
             id = id, agent = agent,
@@ -319,14 +320,11 @@ object JarvisTasks {
                 }
             }
             AgentKind.CODEX -> {
-                if (vm.currentConversation.value?.id == t.id) {
-                    vm.codexBackend.sendMessage(outgoing)
-                } else {
-                    val b = ensureCodexBackend(t.id)
-                    if (b.currentConversation.value?.id != t.id) { b.selectConversation(t.id); delay(900) }
-                    b.sendMessage(outgoing)
-                }
+                val b = ensureCodexBackend(t.id)
+                if (b.currentConversation.value?.id != t.id) { b.selectConversation(t.id); delay(900) }
+                b.sendMessage(outgoing)
             }
+            AgentKind.VIBE -> vm.vibeBackend.sendMessage(outgoing)
         }
         val now = System.currentTimeMillis()
         put(t.copy(state = State.STARTING, turnAt = now, updatedAt = now, progressAt = now, seenRunning = false,
@@ -345,6 +343,7 @@ object JarvisTasks {
             AgentKind.AGY -> hub.cancelCascadeInvocation(t.id).onFailure { return "Could not stop: ${it.message}" }
             AgentKind.OPENCODE -> (openCodeBackends[t.id] ?: vm.openCodeBackend).interrupt(t.id).onFailure { return "Could not stop: ${it.message}" }
             AgentKind.CODEX -> (codexBackends[t.id] ?: vm.codexBackend).interrupt(t.id).onFailure { return "Could not stop: ${it.message}" }
+            AgentKind.VIBE -> vm.vibeBackend.stopStreaming()
         }
         if (!quiet) put(t.copy(state = State.STOPPED, updatedAt = System.currentTimeMillis(), note = "Stopped", reported = true))
         return "Stopped."
@@ -380,7 +379,7 @@ object JarvisTasks {
             AgentKind.CLAUDE -> claudeBackends[t.id]?.messages?.value?.takeIf { it.isNotEmpty() } ?: runCatching { JarvisController.readChat(t.id) }.getOrDefault(emptyList())
             AgentKind.OPENCODE -> openCodeBackends[t.id]?.messages?.value?.takeIf { it.isNotEmpty() } ?: runCatching { JarvisController.readChat(t.id) }.getOrDefault(emptyList())
             AgentKind.CODEX -> codexBackends[t.id]?.messages?.value?.takeIf { it.isNotEmpty() } ?: runCatching { JarvisController.readChat(t.id) }.getOrDefault(emptyList())
-            AgentKind.AGY -> runCatching { JarvisController.readChat(t.id) }.getOrDefault(emptyList())
+            AgentKind.VIBE, AgentKind.AGY -> runCatching { JarvisController.readChat(t.id) }.getOrDefault(emptyList())
         }
         val text = msgs.lastOrNull { it.role == MessageRole.ASSISTANT && it.content.isNotBlank() }?.content.orEmpty()
         return JarvisText.report(text)
@@ -470,6 +469,7 @@ object JarvisTasks {
         AgentKind.CODEX -> codexBackends[t.id]?.isCurrentChatActivelyRunning?.value == true ||
             (vm.currentConversation.value?.id == t.id && vm.codexBackend.isCurrentChatActivelyRunning.value) ||
             vm.codexBackend.conversations.value.any { it.id == t.id && it.isRunning }
+        AgentKind.VIBE -> vm.vibeBackend.isCurrentChatActivelyRunning.value && vm.vibeBackend.currentConversation.value?.id == t.id
     }
 
     private fun agyBusy(id: String): Boolean {
@@ -542,6 +542,14 @@ object JarvisTasks {
                 // Codex reports a failed turn as an error card in the reply (usage limit, connection, model)
                 error = b.conversationError.value ?: last?.takeIf { !running && it.role == MessageRole.ASSISTANT && it.content.contains("<!-- error -->") }
                     ?.let { m -> Regex("\"userMessage\":\"((?:[^\"\\\\]|\\\\.)*)\"").find(m.content)?.groupValues?.get(1) ?: "Codex failed" }
+                sig = "${msgs.size}:${last?.content?.length}:${last?.toolCalls?.size}:${last?.toolCalls?.lastOrNull()?.status}"
+            }
+            AgentKind.VIBE -> {
+                running = vm.vibeBackend.isCurrentChatActivelyRunning.value && vm.vibeBackend.currentConversation.value?.id == t.id
+                needsApproval = vm.vibeBackend.pending.value.isNotEmpty()
+                error = vm.vibeBackend.conversationError.value
+                val msgs = vm.vibeBackend.messages.value
+                val last = msgs.lastOrNull()
                 sig = "${msgs.size}:${last?.content?.length}:${last?.toolCalls?.size}:${last?.toolCalls?.lastOrNull()?.status}"
             }
         }

@@ -42,6 +42,7 @@ object JarvisDriver {
                 vm.openCodeBackend.conversations.value.any { it.id == id && it.isRunning }
             AgentKind.CODEX -> codex[id]?.isCurrentChatActivelyRunning?.value == true ||
                 vm.codexBackend.conversations.value.any { it.id == id && it.isRunning }
+            AgentKind.VIBE -> vm.vibeBackend.isCurrentChatActivelyRunning.value && vm.vibeBackend.currentConversation.value?.id == id
             AgentKind.AGY -> {
                 val c = vm.agyBackend.conversations.value.find { it.id == id }
                 c != null && vm.systemConnectionState.value.isHubOnline && (c.isRunning || c.notFullyIdle)
@@ -56,7 +57,7 @@ object JarvisDriver {
             AgentKind.CLAUDE -> claude.getOrPut(id) { newClaude().also { it.selectConversation(id) } }
             AgentKind.OPENCODE -> openCode.getOrPut(id) { newOpenCode().also { it.selectConversation(id) } }
             AgentKind.CODEX -> codex.getOrPut(id) { newCodex().also { it.selectConversation(id) } }
-            AgentKind.AGY -> Unit
+            AgentKind.VIBE, AgentKind.AGY -> Unit
         }
     }
 
@@ -121,6 +122,7 @@ object JarvisDriver {
                 if (fresh) delay(900) else if (b.currentConversation.value?.id != id) { b.selectConversation(id); delay(900) }
                 b.sendMessage(text)
             }
+            AgentKind.VIBE -> vm.vibeBackend.sendMessage(text)
         }
     }
 
@@ -138,6 +140,7 @@ object JarvisDriver {
             }
             AgentKind.OPENCODE -> (openCode[id] ?: vm.openCodeBackend).interrupt(id)
             AgentKind.CODEX -> (codex[id] ?: vm.codexBackend).interrupt(id)
+            AgentKind.VIBE -> vm.vibeBackend.stopStreaming()
             AgentKind.AGY -> hub.cancelCascadeInvocation(id)
         }
     }
@@ -147,6 +150,7 @@ object JarvisDriver {
         AgentKind.CLAUDE -> if (onScreen(id) && vm.currentConversation.value?.agent == AgentKind.CLAUDE) vm.claudeBackend.messages.value else claude[id]?.messages?.value
         AgentKind.OPENCODE -> if (onScreen(id) && vm.currentConversation.value?.agent == AgentKind.OPENCODE) vm.openCodeBackend.messages.value else openCode[id]?.messages?.value
         AgentKind.CODEX -> if (onScreen(id) && vm.currentConversation.value?.agent == AgentKind.CODEX) vm.codexBackend.messages.value else codex[id]?.messages?.value
+        AgentKind.VIBE -> if (onScreen(id) && vm.currentConversation.value?.agent == AgentKind.VIBE) vm.vibeBackend.messages.value else null
         AgentKind.AGY -> if (onScreen(id) && vm.currentConversation.value?.agent == AgentKind.AGY) vm.messages.value else null
     }
 

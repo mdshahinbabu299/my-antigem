@@ -3,7 +3,6 @@ package ai.antigem.data.agent.vibe
 import ai.antigem.data.agent.opencode.bool
 import ai.antigem.data.agent.opencode.long
 import ai.antigem.data.agent.opencode.o
-import ai.antigem.data.agent.opencode.obj
 import ai.antigem.data.agent.opencode.str
 import ai.antigem.data.preferences.AuthPreferences
 import ai.antigem.data.remote.AgyBridgeService
@@ -142,7 +141,7 @@ class VibeBridgeClient(private val bridge: AgyBridgeService = AgyBridgeService.i
             if (timeoutMs != null) put("timeout_ms", timeoutMs)
         }
         val text = execute(post("/rpc", body))
-        val obj = VibeJson.parseToJsonElement(text).obj ?: error("Invalid bridge response")
+        val obj = VibeJson.parseToJsonElement(text).o ?: error("Invalid bridge response")
         if (obj.bool("success") != true) {
             throw VibeRpcException(
                 message = obj.str("error") ?: "Mistral Vibe RPC failed",
