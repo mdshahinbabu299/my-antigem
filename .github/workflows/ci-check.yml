@@ -1,0 +1,44 @@
+name: CI Check
+
+on:
+  push:
+    branches:
+      - 'feat/**'
+      - 'fix/**'
+    paths-ignore:
+      - 'PROGRESS.md'
+      - '**.md'
+
+jobs:
+  go-bridge-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - name: Run Go bridge tests
+        working-directory: agy_ide_bridge
+        run: go test ./...
+
+  android-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch termux-am
+        run: |
+          if git submodule status termux-am >/dev/null 2>&1; then
+            git submodule update --init --depth 1 termux-am
+          else
+            git clone --depth 1 https://github.com/termux/TermuxAm.git termux-am
+          fi
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Compile Debug Kotlin & Run Unit Tests
+        run: ./gradlew :app:compileDebugKotlin :app:testDebugUnitTest -Pabi=arm64

@@ -32,6 +32,7 @@ import (
 	"gemini-server/pkg/relocate"
 	"gemini-server/pkg/runlog"
 	"gemini-server/pkg/security"
+	"gemini-server/pkg/vibe"
 	"gemini-server/pkg/ws"
 )
 
@@ -150,6 +151,8 @@ func main() {
 	var noOpenCode bool
 	var customCodexBin string
 	var noCodex bool
+	var customVibeBin string
+	var noVibe bool
 	var forceStart bool
 	var skipHub bool
 	var cliToken string
@@ -208,6 +211,15 @@ func main() {
 			}
 		case arg == "--no-codex":
 			noCodex = true
+		case strings.HasPrefix(arg, "--vibe-bin="):
+			customVibeBin = strings.TrimPrefix(arg, "--vibe-bin=")
+		case arg == "--vibe-bin":
+			if i+1 < len(os.Args) {
+				customVibeBin = os.Args[i+1]
+				i++
+			}
+		case arg == "--no-vibe":
+			noVibe = true
 		case strings.HasPrefix(arg, "--port="):
 			cfg.Port = strings.TrimPrefix(arg, "--port=")
 		case arg == "-p" || arg == "--port":
@@ -379,6 +391,19 @@ func main() {
 	} else {
 		codexMgr = codex.NewManager(cfg.HomeDir, cfg.WorkspaceDir, customCodexBin)
 		mux.Handle("/api/codex/", codexMgr)
+	}
+
+	// Mistral Vibe: one `vibe-acp` (ACP JSON-RPC 2.0 over stdio) for all its chats; off with --no-vibe
+	var vibeMgr *vibe.Manager
+	if noVibe {
+		mux.HandleFunc("/api/vibe/", func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusServiceUnavailable)
+			_, _ = w.Write([]byte(`{"success":false,"disabled":true,"error":"Mistral Vibe is turned off in the app"}`))
+		})
+	} else {
+		vibeMgr = vibe.NewManager(cfg.HomeDir, cfg.WorkspaceDir, customVibeBin)
+		mux.Handle("/api/vibe/", vibeMgr)
 	}
 
 	// Project checkpoints: a hidden copy of the project before each chat message (any agent), restore with preview
@@ -734,6 +759,9 @@ func main() {
 	}
 	if codexMgr != nil {
 		codexMgr.StopAll()
+	}
+	if vibeMgr != nil {
+		vibeMgr.StopAll()
 	}
 	if hubMgr != nil {
 		hubMgr.Stop()
