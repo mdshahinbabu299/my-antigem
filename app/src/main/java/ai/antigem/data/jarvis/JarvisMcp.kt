@@ -794,7 +794,7 @@ object JarvisMcp {
         return if (owner != caller) "That chat is a task of ${JarvisManagers.nameOf(owner)}: only that Jarvis chat directs it." else null
     }
 
-    private fun agentName(agent: AgentKind) = when (agent) { AgentKind.CLAUDE -> "Claude Code"; AgentKind.OPENCODE -> "OpenCode"; AgentKind.CODEX -> "Codex"; AgentKind.VIBE -> "Mistral Vibe"; AgentKind.AGY -> "Antigravity" }
+    private fun agentName(agent: AgentKind) = when (agent) { AgentKind.CLAUDE -> "Claude Code"; AgentKind.OPENCODE -> "OpenCode"; AgentKind.CODEX -> "Codex"; AgentKind.AGY -> "Antigravity" }
 
     /** Hidden in front of every task's goal: how a sub-agent of Jarvis works and reports, and its team's role. */
     private fun subAgentBrief(team: JarvisManagers.Team?): String = buildString {
@@ -1320,7 +1320,6 @@ object JarvisMcp {
         AgentKind.CLAUDE -> vm.claudeBackend.availableModels.value
         AgentKind.OPENCODE -> vm.openCodeBackend.availableModels.value
         AgentKind.CODEX -> vm.codexBackend.availableModels.value
-        AgentKind.VIBE -> vm.vibeBackend.availableModels.value
         AgentKind.AGY -> vm.agyBackend.enabledModels.value
     }
 

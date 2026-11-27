@@ -58,7 +58,6 @@ class AgentPreferences(context: Context) {
                 if (AgentKind.CLAUDE !in enabled) append(" --no-claude")
                 if (AgentKind.OPENCODE !in enabled) append(" --no-opencode")
                 if (AgentKind.CODEX !in enabled) append(" --no-codex")
-                if (AgentKind.VIBE !in enabled) append(" --no-vibe")
             }
         }
     }

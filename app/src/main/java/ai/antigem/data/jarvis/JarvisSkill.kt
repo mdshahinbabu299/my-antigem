@@ -404,7 +404,6 @@ description: Use when a message comes from the AntiGem Jarvis voice mode (hands-
         AgentKind.AGY -> "~/.gemini/antigravity/skills/$SKILL_NAME"
         AgentKind.OPENCODE -> "~/.config/opencode/skills/$SKILL_NAME"
         AgentKind.CODEX -> "~/.codex/skills/$SKILL_NAME"
-        AgentKind.VIBE -> "~/.vibe/skills/$SKILL_NAME"
     }
 
     /** Writes the skill file for [agent]. Returns the path on success. */

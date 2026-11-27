@@ -558,7 +558,6 @@ object JarvisController {
         AgentKind.AGY -> "Antigravity"
         AgentKind.OPENCODE -> "OpenCode"
         AgentKind.CODEX -> "Codex"
-        AgentKind.VIBE -> "Mistral Vibe"
         null -> "the agent"
     }
 
@@ -1567,7 +1566,6 @@ object JarvisController {
                 AgentKind.AGY -> sendAgy(prompt)
                 AgentKind.OPENCODE -> sendOpenCode(prompt)
                 AgentKind.CODEX -> sendCodex(prompt)
-                AgentKind.VIBE -> error("Mistral Vibe is not supported as a Jarvis brain yet.")
             }
         } catch (e: Exception) {
             // the saved Jarvis chat was deleted: start a new one and send this message there (once)
@@ -1761,8 +1759,8 @@ object JarvisController {
         }
         AgentKind.AGY -> Result.failure(IllegalArgumentException(
             "AGY has no separate effort: each thinking level is its own model. Pick that model with model / jarvis_set_model (see jarvis_list_models)."))
-        AgentKind.OPENCODE, AgentKind.VIBE -> Result.failure(IllegalArgumentException(
-            "OpenCode/Vibe chats have no effort setting in the app. Pick the model with model / jarvis_set_model."))
+        AgentKind.OPENCODE -> Result.failure(IllegalArgumentException(
+            "OpenCode chats have no effort setting in the app. Pick the model with model / jarvis_set_model."))
     }
 
     /**
@@ -1799,7 +1797,7 @@ object JarvisController {
                 if (chosen !in levels) return "This chat's model supports these efforts: ${levels.joinToString()} (or default)."
                 b.selectEffort(chosen)
             }
-            AgentKind.AGY, AgentKind.OPENCODE, AgentKind.VIBE -> return effortLevelsFor(kind, null).exceptionOrNull()?.message
+            AgentKind.AGY, AgentKind.OPENCODE -> return effortLevelsFor(kind, null).exceptionOrNull()?.message
         }
         return null
     }
@@ -1832,7 +1830,6 @@ object JarvisController {
                 JarvisTasks.codexBackendOf(id) != null -> JarvisTasks.codexBackendOf(id)!!.selectModel(modelId)
                 else -> vm.codexBackend.switchModelOf(id, modelId).getOrThrow()
             }
-            AgentKind.VIBE -> vm.vibeBackend.selectModel(modelId)
         }
     }
 
@@ -1855,7 +1852,6 @@ object JarvisController {
             AgentKind.AGY -> hub.cancelCascadeInvocation(id).fold({ "Stopped." }, { "Could not stop: ${it.message}" })
             AgentKind.OPENCODE -> vm.openCodeBackend.interrupt(id).fold({ "Stopped." }, { "Could not stop: ${it.message}" })
             AgentKind.CODEX -> vm.codexBackend.interrupt(id).fold({ "Stopped." }, { "Could not stop: ${it.message}" })
-            AgentKind.VIBE -> { vm.vibeBackend.stopStreaming(); "Stopped." }
         }
     }
 
@@ -1872,7 +1868,6 @@ object JarvisController {
                 AgentKind.CLAUDE -> vm.claudeBackend.loadMessages(id)
                 AgentKind.OPENCODE -> vm.openCodeBackend.loadMessages(id)
                 AgentKind.CODEX -> vm.codexBackend.loadMessages(id)
-                AgentKind.VIBE -> vm.vibeBackend.loadMessages(id)
                 AgentKind.AGY -> {
                     val steps = hub.getCascadeTrajectorySteps(id).getOrNull().orEmpty()
                     ai.antigem.domain.chat.TrajectoryEngine().ingestStepsDirect(steps, id)

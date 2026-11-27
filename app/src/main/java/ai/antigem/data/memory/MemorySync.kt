@@ -123,7 +123,6 @@ object MemorySync {
                 AgentKind.CLAUDE -> vm.loadClaudeMessages(c.id)
                 AgentKind.OPENCODE -> vm.loadOpenCodeMessages(c.id)
                 AgentKind.CODEX -> vm.loadCodexMessages(c.id)
-                AgentKind.VIBE -> vm.vibeBackend.loadMessages(c.id)
                 AgentKind.AGY -> {
                     val steps = hub.getCascadeTrajectorySteps(c.id).getOrNull().orEmpty()
                     ai.antigem.domain.chat.TrajectoryEngine().ingestStepsDirect(steps, c.id)

@@ -62,7 +62,6 @@ private fun agentName(agent: AgentKind) = when (agent) {
     AgentKind.CODEX -> "Codex"
     AgentKind.AGY -> "Antigravity (agy)"
     AgentKind.OPENCODE -> "OpenCode"
-    AgentKind.VIBE -> "Mistral Vibe"
 }
 
 private fun agentAccent(agent: AgentKind) = when (agent) {
@@ -70,7 +69,6 @@ private fun agentAccent(agent: AgentKind) = when (agent) {
     AgentKind.CODEX -> CodexAccent
     AgentKind.AGY -> AgyAccent
     AgentKind.OPENCODE -> OpenCodeAccent
-    AgentKind.VIBE -> ai.antigem.ui.components.VibeAccent
 }
 
 /** owner/repo, owner/repo@branch or a GitHub link → a link any agent can open. */
@@ -101,7 +99,6 @@ fun repoSetupPrompt(source: String, agent: AgentKind, kind: RepoSetupKind): Stri
         AgentKind.CODEX -> "copy each skill folder (the folder holding SKILL.md, with all its files) to ~/.codex/skills/<skill-name>/"
         AgentKind.AGY -> "copy each skill folder (the folder holding SKILL.md, with all its files) to ~/.gemini/antigravity/skills/<skill-name>/"
         AgentKind.OPENCODE -> "copy each skill folder (the folder holding SKILL.md, with all its files) to ~/.config/opencode/skills/<skill-name>/"
-        AgentKind.VIBE -> "copy each skill folder (the folder holding SKILL.md, with all its files) to ~/.vibe/skills/<skill-name>/"
     }
     val plugins = when (agent) {
         AgentKind.CLAUDE -> listOf(
@@ -122,16 +119,12 @@ fun repoSetupPrompt(source: String, agent: AgentKind, kind: RepoSetupKind): Stri
             "OpenCode plugins are JavaScript packages: `opencode plugin add <npm package or git link>`.",
             "OpenCode can't load Claude Code, Codex or Antigravity plugin bundles: install their skills (their skills/ folders) and MCP servers separately instead."
         )
-        AgentKind.VIBE -> listOf(
-            "Mistral Vibe uses skills and MCP servers configured in ~/.vibe/."
-        )
     }
     val mcp = when (agent) {
         AgentKind.CLAUDE -> "`claude mcp add --scope user <name> -- <command> [args]`, or `claude mcp add --scope user --transport http <name> <url>`; check with `claude mcp list`"
         AgentKind.CODEX -> "`codex mcp add <name> -- <command> [args]`, or `codex mcp add <name> --url <url>`; check with `codex mcp list`"
         AgentKind.AGY -> "`agy mcp add <name> <command> [args]` (flags go before the name), or `agy mcp add <name> <url>`; check with `agy mcp list`"
         AgentKind.OPENCODE -> "`opencode mcp add --global <name> -- <command> [args]`, or `opencode mcp add --global <name> --url <url>`; check with `opencode mcp list`"
-        AgentKind.VIBE -> "Configure MCP servers in ~/.vibe/config.toml"
     }
     return buildString {
         appendLine("Set up this GitHub repository for $name: $url")
