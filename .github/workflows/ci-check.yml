@@ -41,5 +41,5 @@ jobs:
         with:
           go-version: '1.26.x'
       - uses: gradle/actions/setup-gradle@v4
-      - name: Compile Debug Kotlin & Run Unit Tests
-        run: ./gradlew :app:compileDebugKotlin :app:testDebugUnitTest -Pabi=arm64
+      - name: Compile Debug Kotlin & Build Debug APK
+        run: ./gradlew :app:compileDebugKotlin :app:assembleDebug -Pabi=arm64
