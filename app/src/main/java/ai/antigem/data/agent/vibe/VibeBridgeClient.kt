@@ -141,7 +141,7 @@ class VibeBridgeClient(private val bridge: AgyBridgeService = AgyBridgeService.i
             if (timeoutMs != null) put("timeout_ms", timeoutMs)
         }
         val text = execute(post("/rpc", body))
-        val obj = VibeJson.parseToJsonElement(text).o ?: error("Invalid bridge response")
+        val obj = VibeJson.parseToJsonElement(text) as? JsonObject ?: error("Invalid bridge response")
         if (obj.bool("success") != true) {
             throw VibeRpcException(
                 message = obj.str("error") ?: "Mistral Vibe RPC failed",
@@ -171,7 +171,7 @@ class VibeBridgeClient(private val bridge: AgyBridgeService = AgyBridgeService.i
             }
 
             override fun onMessage(webSocket: WebSocket, text: String) {
-                val frame = runCatching { VibeJson.parseToJsonElement(text).o }.getOrNull() ?: return
+                val frame = runCatching { VibeJson.parseToJsonElement(text) as? JsonObject }.getOrNull() ?: return
                 trySend(VibeSocketEvent.Frame(frame))
             }
 

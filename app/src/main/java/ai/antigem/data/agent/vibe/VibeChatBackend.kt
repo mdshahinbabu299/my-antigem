@@ -338,7 +338,7 @@ class VibeChatBackend(
                         put("cwd", ".")
                         put("mcpServers", JsonArray(emptyList()))
                     })
-                    val newObj = newRes.getOrThrow().o ?: error("Invalid session/new response")
+                    val newObj = newRes.getOrThrow() as? JsonObject ?: error("Invalid session/new response")
                     sessionId = newObj.str("sessionId") ?: error("Missing sessionId")
                     chats[cur.id] = chats[cur.id]!!.copy(acpSessionId = sessionId)
                     saveChatToDisk(cur.id)
