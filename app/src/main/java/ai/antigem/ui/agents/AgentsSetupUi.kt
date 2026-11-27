@@ -74,6 +74,11 @@ private val AGENT_OPTIONS = listOf(
         AgentKind.CODEX,
         "Codex",
         "OpenAI's Codex CLI on this device: sign in with your ChatGPT account (or an API key)."
+    ),
+    AgentOption(
+        AgentKind.VIBE,
+        "Mistral Vibe",
+        "Mistral AI's Vibe CLI on this device: use your Mistral Pro subscription or API key."
     )
 )
 

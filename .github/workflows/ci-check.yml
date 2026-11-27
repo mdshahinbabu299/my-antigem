@@ -18,8 +18,9 @@ jobs:
         with:
           go-version: '1.26.x'
       - name: Run Go bridge tests
-        working-directory: agy_ide_bridge
-        run: go test ./...
+        run: |
+          cp version.json agy_ide_bridge/pkg/buildinfo/version.json
+          cd agy_ide_bridge && go test ./...
 
   android-check:
     runs-on: ubuntu-latest
