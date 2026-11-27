@@ -109,6 +109,15 @@ func (p *process) alive() bool {
 	}
 }
 
+func (m *Manager) liveProc() *process {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if m.proc != nil && m.proc.alive() && m.starting == nil {
+		return m.proc
+	}
+	return nil
+}
+
 // Manager owns the vibe-acp process and serves /api/vibe/.
 type Manager struct {
 	HomeDir      string
