@@ -84,6 +84,25 @@ func (m *Manager) runInstallJob(j *installJob, update bool) {
 }
 
 func (m *Manager) install(ctx context.Context, j *installJob, update bool) error {
+	if m.termuxNative() {
+		if pkg, err := exec.LookPath("pkg"); err == nil {
+			j.logf("Installing Termux build dependencies (python-pip, python-cryptography, rust, maturin, binutils)...")
+			_ = m.runLogged(ctx, j, pkg, "install", "-y", "python-pip", "python-cryptography", "rust", "maturin", "binutils")
+		}
+		for _, py := range []string{"python3", "python"} {
+			if bin, err := exec.LookPath(py); err == nil {
+				args := []string{"-m", "pip", "install", "--user", "--no-build-isolation", "--break-system-packages"}
+				if update {
+					args = append(args, "--upgrade")
+				}
+				args = append(args, "mistral-vibe")
+				j.logf("Running: %s %s", bin, strings.Join(args, " "))
+				if err := m.runLoggedWithEnv(ctx, j, []string{"ANDROID_API_LEVEL=24"}, bin, args...); err == nil {
+					return m.verifyAfterInstall(j)
+				}
+			}
+		}
+	}
 	if uv, err := exec.LookPath("uv"); err == nil {
 		args := []string{"tool", "install", "mistral-vibe"}
 		if update {
@@ -130,7 +149,14 @@ func (m *Manager) verifyAfterInstall(j *installJob) error {
 }
 
 func (m *Manager) runLogged(ctx context.Context, j *installJob, bin string, args ...string) error {
+	return m.runLoggedWithEnv(ctx, j, nil, bin, args...)
+}
+
+func (m *Manager) runLoggedWithEnv(ctx context.Context, j *installJob, extraEnv []string, bin string, args ...string) error {
 	cmd := m.command(ctx, bin, args...)
+	if len(extraEnv) > 0 {
+		cmd.Env = append(cmd.Env, extraEnv...)
+	}
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return err
